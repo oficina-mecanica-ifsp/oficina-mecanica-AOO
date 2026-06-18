@@ -1,0 +1,1038 @@
+{
+  "info": {
+    "name": "Oficina Mecânica API",
+    "description": "Coleção completa para testar todos os endpoints da API. Execute as requisições na ordem sugerida pelas pastas.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8080" },
+    { "key": "token_admin", "value": "" },
+    { "key": "token_atendente", "value": "" },
+    { "key": "token_mecanico", "value": "" },
+    { "key": "cliente_id", "value": "" },
+    { "key": "carro_id", "value": "" },
+    { "key": "servico_id", "value": "" },
+    { "key": "produto_id", "value": "" },
+    { "key": "order_id", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Autenticação",
+      "item": [
+        {
+          "name": "Login ADMIN",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "pm.collectionVariables.set('token_admin', json.token);",
+                  "pm.test('Login bem-sucedido', () => pm.response.to.have.status(200));",
+                  "pm.test('Token retornado', () => pm.expect(json.token).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@oficina.com\",\n  \"senha\": \"admin123\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Cadastrar Atendente (ADMIN)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Atendente criado', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Maria Atendente\",\n  \"email\": \"atendente@oficina.com\",\n  \"senha\": \"senha123\",\n  \"tipo\": \"ATENDENTE\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/auth/cadastrar", "host": ["{{base_url}}"], "path": ["auth", "cadastrar"] }
+          }
+        },
+        {
+          "name": "Cadastrar Mecânico (ADMIN)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Mecânico criado', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"João Mecânico\",\n  \"email\": \"mecanico@oficina.com\",\n  \"senha\": \"senha123\",\n  \"tipo\": \"MECANICO\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/auth/cadastrar", "host": ["{{base_url}}"], "path": ["auth", "cadastrar"] }
+          }
+        },
+        {
+          "name": "Login Atendente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "pm.collectionVariables.set('token_atendente', json.token);",
+                  "pm.test('Login Atendente OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"atendente@oficina.com\",\n  \"senha\": \"senha123\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Login Mecânico",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "pm.collectionVariables.set('token_mecanico', json.token);",
+                  "pm.test('Login Mecânico OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"mecanico@oficina.com\",\n  \"senha\": \"senha123\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "[ERRO] Cadastrar sem token — espera 401/403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Bloqueado sem token', () => pm.expect(pm.response.code).to.be.oneOf([401, 403]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Hacker\",\n  \"email\": \"hacker@x.com\",\n  \"senha\": \"senha123\",\n  \"tipo\": \"ADMIN\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/auth/cadastrar", "host": ["{{base_url}}"], "path": ["auth", "cadastrar"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Clientes",
+      "item": [
+        {
+          "name": "Criar Cliente PF",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "pm.collectionVariables.set('cliente_id', json.id);",
+                  "pm.test('Cliente criado', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_atendente}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Carlos Silva\",\n  \"email\": \"carlos@email.com\",\n  \"telefone\": \"11999990001\",\n  \"documento\": \"123.456.789-09\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/clientes", "host": ["{{base_url}}"], "path": ["clientes"] }
+          }
+        },
+        {
+          "name": "Criar Cliente PJ",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_atendente}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Transportadora Rápida Ltda\",\n  \"email\": \"contato@transportadora.com\",\n  \"telefone\": \"1133334444\",\n  \"documento\": \"12.345.678/0001-99\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/clientes", "host": ["{{base_url}}"], "path": ["clientes"] }
+          }
+        },
+        {
+          "name": "Listar Clientes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Listagem OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_atendente}}" }],
+            "url": {
+              "raw": "{{base_url}}/clientes?page=0&size=10",
+              "host": ["{{base_url}}"], "path": ["clientes"],
+              "query": [{ "key": "page", "value": "0" }, { "key": "size", "value": "10" }]
+            }
+          }
+        },
+        {
+          "name": "Buscar Cliente por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Cliente encontrado', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_atendente}}" }],
+            "url": { "raw": "{{base_url}}/clientes/{{cliente_id}}", "host": ["{{base_url}}"], "path": ["clientes", "{{cliente_id}}"] }
+          }
+        },
+        {
+          "name": "Buscar Cliente por Documento",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_atendente}}" }],
+            "url": { "raw": "{{base_url}}/clientes/doc/12345678909", "host": ["{{base_url}}"], "path": ["clientes", "doc", "12345678909"] }
+          }
+        },
+        {
+          "name": "Atualizar Cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Cliente atualizado', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_atendente}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Carlos Silva Atualizado\",\n  \"email\": \"carlos.novo@email.com\",\n  \"telefone\": \"11999990002\",\n  \"documento\": \"123.456.789-09\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/clientes/{{cliente_id}}", "host": ["{{base_url}}"], "path": ["clientes", "{{cliente_id}}"] }
+          }
+        },
+        {
+          "name": "[ERRO] Criar Cliente sem documento — espera 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Validação funciona', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_atendente}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Sem Documento\",\n  \"email\": \"semdoc@email.com\",\n  \"telefone\": \"11999999999\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/clientes", "host": ["{{base_url}}"], "path": ["clientes"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Carros",
+      "item": [
+        {
+          "name": "Criar Carro",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "pm.collectionVariables.set('carro_id', json.id);",
+                  "pm.test('Carro criado', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_atendente}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"placa\": \"ABC1D23\",\n  \"modelo\": \"Civic\",\n  \"marca\": \"Honda\",\n  \"ano\": 2020,\n  \"clienteId\": {{cliente_id}}\n}"
+            },
+            "url": { "raw": "{{base_url}}/carros", "host": ["{{base_url}}"], "path": ["carros"] }
+          }
+        },
+        {
+          "name": "Listar Carros",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_atendente}}" }],
+            "url": {
+              "raw": "{{base_url}}/carros?page=0&size=10",
+              "host": ["{{base_url}}"], "path": ["carros"],
+              "query": [{ "key": "page", "value": "0" }, { "key": "size", "value": "10" }]
+            }
+          }
+        },
+        {
+          "name": "Buscar Carro por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_atendente}}" }],
+            "url": { "raw": "{{base_url}}/carros/{{carro_id}}", "host": ["{{base_url}}"], "path": ["carros", "{{carro_id}}"] }
+          }
+        },
+        {
+          "name": "Atualizar Carro",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_atendente}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"placa\": \"ABC1D23\",\n  \"modelo\": \"Civic EXL\",\n  \"marca\": \"Honda\",\n  \"ano\": 2021,\n  \"clienteId\": {{cliente_id}}\n}"
+            },
+            "url": { "raw": "{{base_url}}/carros/{{carro_id}}", "host": ["{{base_url}}"], "path": ["carros", "{{carro_id}}"] }
+          }
+        },
+        {
+          "name": "[ERRO] Carro com cliente inexistente — espera 404/422",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Regra de negócio', () => pm.expect(pm.response.code).to.be.oneOf([404, 422]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_atendente}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"placa\": \"ZZZ9Z99\",\n  \"modelo\": \"Gol\",\n  \"marca\": \"VW\",\n  \"ano\": 2010,\n  \"clienteId\": 99999\n}"
+            },
+            "url": { "raw": "{{base_url}}/carros", "host": ["{{base_url}}"], "path": ["carros"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Serviços",
+      "item": [
+        {
+          "name": "Criar Serviço — Troca de Óleo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "pm.collectionVariables.set('servico_id', json.id);",
+                  "pm.test('Serviço criado', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_atendente}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Troca de Óleo\",\n  \"descricao\": \"Troca de óleo do motor com filtro\",\n  \"preco\": 80.00,\n  \"duracaoEstimadaMinutos\": 30\n}"
+            },
+            "url": { "raw": "{{base_url}}/servicos", "host": ["{{base_url}}"], "path": ["servicos"] }
+          }
+        },
+        {
+          "name": "Criar Serviço — Alinhamento",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_atendente}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Alinhamento e Balanceamento\",\n  \"descricao\": \"Alinhamento computadorizado e balanceamento das 4 rodas\",\n  \"preco\": 120.00,\n  \"duracaoEstimadaMinutos\": 60\n}"
+            },
+            "url": { "raw": "{{base_url}}/servicos", "host": ["{{base_url}}"], "path": ["servicos"] }
+          }
+        },
+        {
+          "name": "Listar Serviços",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_atendente}}" }],
+            "url": {
+              "raw": "{{base_url}}/servicos?page=0&size=10",
+              "host": ["{{base_url}}"], "path": ["servicos"],
+              "query": [{ "key": "page", "value": "0" }, { "key": "size", "value": "10" }]
+            }
+          }
+        },
+        {
+          "name": "Buscar Serviço por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_atendente}}" }],
+            "url": { "raw": "{{base_url}}/servicos/{{servico_id}}", "host": ["{{base_url}}"], "path": ["servicos", "{{servico_id}}"] }
+          }
+        },
+        {
+          "name": "Atualizar Serviço",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_atendente}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Troca de Óleo Sintético\",\n  \"descricao\": \"Troca de óleo sintético 5W30 com filtro\",\n  \"preco\": 110.00,\n  \"duracaoEstimadaMinutos\": 30\n}"
+            },
+            "url": { "raw": "{{base_url}}/servicos/{{servico_id}}", "host": ["{{base_url}}"], "path": ["servicos", "{{servico_id}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Produtos / Estoque",
+      "item": [
+        {
+          "name": "Criar Produto — Filtro de Óleo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "pm.collectionVariables.set('produto_id', json.id);",
+                  "pm.test('Produto criado', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_atendente}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Filtro de Óleo Mann W914\",\n  \"descricao\": \"Filtro de óleo para motores 1.0 a 2.0\",\n  \"preco\": 25.90,\n  \"tipo\": \"PECA\",\n  \"quantidade\": 20,\n  \"quantidadeMinima\": 5\n}"
+            },
+            "url": { "raw": "{{base_url}}/produtos", "host": ["{{base_url}}"], "path": ["produtos"] }
+          }
+        },
+        {
+          "name": "Criar Produto — Óleo Motor",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_atendente}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Óleo Motor Mobil 5W30 1L\",\n  \"descricao\": \"Óleo sintético para motores flex\",\n  \"preco\": 32.50,\n  \"tipo\": \"PRODUTO\",\n  \"quantidade\": 50,\n  \"quantidadeMinima\": 10\n}"
+            },
+            "url": { "raw": "{{base_url}}/produtos", "host": ["{{base_url}}"], "path": ["produtos"] }
+          }
+        },
+        {
+          "name": "Listar Produtos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_atendente}}" }],
+            "url": {
+              "raw": "{{base_url}}/produtos?page=0&size=10",
+              "host": ["{{base_url}}"], "path": ["produtos"],
+              "query": [{ "key": "page", "value": "0" }, { "key": "size", "value": "10" }]
+            }
+          }
+        },
+        {
+          "name": "Buscar Produto por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_atendente}}" }],
+            "url": { "raw": "{{base_url}}/produtos/{{produto_id}}", "host": ["{{base_url}}"], "path": ["produtos", "{{produto_id}}"] }
+          }
+        },
+        {
+          "name": "Registrar Entrada de Estoque",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Estoque atualizado', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_atendente}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantidade\": 10\n}"
+            },
+            "url": { "raw": "{{base_url}}/produtos/{{produto_id}}/entrada", "host": ["{{base_url}}"], "path": ["produtos", "{{produto_id}}", "entrada"] }
+          }
+        },
+        {
+          "name": "Listar Estoque Crítico",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Consulta OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_atendente}}" }],
+            "url": {
+              "raw": "{{base_url}}/produtos/estoque-critico?page=0&size=10",
+              "host": ["{{base_url}}"], "path": ["produtos", "estoque-critico"],
+              "query": [{ "key": "page", "value": "0" }, { "key": "size", "value": "10" }]
+            }
+          }
+        },
+        {
+          "name": "Atualizar Produto",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_atendente}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Filtro de Óleo Mann W914 (Atualizado)\",\n  \"descricao\": \"Filtro de óleo para motores 1.0 a 2.0\",\n  \"preco\": 27.90,\n  \"tipo\": \"PECA\",\n  \"quantidade\": 20,\n  \"quantidadeMinima\": 5\n}"
+            },
+            "url": { "raw": "{{base_url}}/produtos/{{produto_id}}", "host": ["{{base_url}}"], "path": ["produtos", "{{produto_id}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Ordem de Serviço",
+      "item": [
+        {
+          "name": "Abrir OS",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "pm.collectionVariables.set('order_id', json.id);",
+                  "pm.test('OS criada', () => pm.response.to.have.status(201));",
+                  "pm.test('Status RECEBIDO', () => pm.expect(json.status).to.eql('RECEBIDO'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_atendente}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": {{cliente_id}},\n  \"carroId\": {{carro_id}},\n  \"descricao\": \"Carro com barulho no motor e óleo a trocar\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/orders", "host": ["{{base_url}}"], "path": ["orders"] }
+          }
+        },
+        {
+          "name": "Listar OS",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_atendente}}" }],
+            "url": {
+              "raw": "{{base_url}}/orders?page=0&size=10",
+              "host": ["{{base_url}}"], "path": ["orders"],
+              "query": [{ "key": "page", "value": "0" }, { "key": "size", "value": "10" }]
+            }
+          }
+        },
+        {
+          "name": "Buscar OS por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_atendente}}" }],
+            "url": { "raw": "{{base_url}}/orders/{{order_id}}", "host": ["{{base_url}}"], "path": ["orders", "{{order_id}}"] }
+          }
+        },
+        {
+          "name": "Adicionar Produto à OS (MECÂNICO)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Produto adicionado à OS', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_mecanico}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"produtoId\": {{produto_id}},\n  \"quantidade\": 2\n}"
+            },
+            "url": { "raw": "{{base_url}}/orders/{{order_id}}/produtos", "host": ["{{base_url}}"], "path": ["orders", "{{order_id}}", "produtos"] }
+          }
+        },
+        {
+          "name": "Adicionar Serviço à OS (MECÂNICO)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Serviço adicionado à OS', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_mecanico}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"servicoId\": {{servico_id}}\n}"
+            },
+            "url": { "raw": "{{base_url}}/orders/{{order_id}}/servicos", "host": ["{{base_url}}"], "path": ["orders", "{{order_id}}", "servicos"] }
+          }
+        },
+        {
+          "name": "[ERRO] Adicionar produto duplicado — espera 422",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Duplicado bloqueado', () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_mecanico}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"produtoId\": {{produto_id}},\n  \"quantidade\": 1\n}"
+            },
+            "url": { "raw": "{{base_url}}/orders/{{order_id}}/produtos", "host": ["{{base_url}}"], "path": ["orders", "{{order_id}}", "produtos"] }
+          }
+        },
+        {
+          "name": "Status: RECEBIDO → EM_DIAGNOSTICO",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status atualizado', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_mecanico}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"EM_DIAGNOSTICO\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/orders/{{order_id}}/status", "host": ["{{base_url}}"], "path": ["orders", "{{order_id}}", "status"] }
+          }
+        },
+        {
+          "name": "Status: EM_DIAGNOSTICO → AGUARDANDO_APROVACAO",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_mecanico}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"AGUARDANDO_APROVACAO\",\n  \"dataValidade\": \"2026-05-20\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/orders/{{order_id}}/status", "host": ["{{base_url}}"], "path": ["orders", "{{order_id}}", "status"] }
+          }
+        },
+        {
+          "name": "Status: AGUARDANDO_APROVACAO → EM_EXECUCAO",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_mecanico}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"EM_EXECUCAO\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/orders/{{order_id}}/status", "host": ["{{base_url}}"], "path": ["orders", "{{order_id}}", "status"] }
+          }
+        },
+        {
+          "name": "[ERRO] Transição inválida — espera 422",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Transição bloqueada', () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_mecanico}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"RECEBIDO\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/orders/{{order_id}}/status", "host": ["{{base_url}}"], "path": ["orders", "{{order_id}}", "status"] }
+          }
+        },
+        {
+          "name": "[ERRO] FINALIZADO sem pagamento — espera 422",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Bloqueado sem pagamento', () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_mecanico}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"FINALIZADO\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/orders/{{order_id}}/status", "host": ["{{base_url}}"], "path": ["orders", "{{order_id}}", "status"] }
+          }
+        },
+        {
+          "name": "[ERRO] ATENDENTE tentando mudar status — espera 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Atendente bloqueado', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_atendente}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"FINALIZADO\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/orders/{{order_id}}/status", "host": ["{{base_url}}"], "path": ["orders", "{{order_id}}", "status"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Pagamento",
+      "item": [
+        {
+          "name": "Registrar Pagamento (PIX)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Pagamento registrado', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_atendente}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": {{order_id}},\n  \"valor\": 213.70,\n  \"formaPagamento\": \"PIX\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/pagamentos", "host": ["{{base_url}}"], "path": ["pagamentos"] }
+          }
+        },
+        {
+          "name": "Consultar Pagamento da OS",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Pagamento encontrado', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_atendente}}" }],
+            "url": { "raw": "{{base_url}}/pagamentos/order/{{order_id}}", "host": ["{{base_url}}"], "path": ["pagamentos", "order", "{{order_id}}"] }
+          }
+        },
+        {
+          "name": "[ERRO] Pagamento duplicado — espera 422",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Duplicado bloqueado', () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_atendente}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": {{order_id}},\n  \"valor\": 213.70,\n  \"formaPagamento\": \"DINHEIRO\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/pagamentos", "host": ["{{base_url}}"], "path": ["pagamentos"] }
+          }
+        },
+        {
+          "name": "Status: EM_EXECUCAO → FINALIZADO (após pagamento)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('OS finalizada', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_mecanico}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"FINALIZADO\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/orders/{{order_id}}/status", "host": ["{{base_url}}"], "path": ["orders", "{{order_id}}", "status"] }
+          }
+        },
+        {
+          "name": "Status: FINALIZADO → ENTREGUE",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('OS entregue', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_mecanico}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ENTREGUE\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/orders/{{order_id}}/status", "host": ["{{base_url}}"], "path": ["orders", "{{order_id}}", "status"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Limpeza (opcional)",
+      "item": [
+        {
+          "name": "Remover Produto da OS",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_mecanico}}" }],
+            "url": { "raw": "{{base_url}}/orders/{{order_id}}/produtos/{{produto_id}}", "host": ["{{base_url}}"], "path": ["orders", "{{order_id}}", "produtos", "{{produto_id}}"] }
+          }
+        },
+        {
+          "name": "Deletar OS (ADMIN)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('OS deletada', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
+            "url": { "raw": "{{base_url}}/orders/{{order_id}}", "host": ["{{base_url}}"], "path": ["orders", "{{order_id}}"] }
+          }
+        },
+        {
+          "name": "Deletar Cliente",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_atendente}}" }],
+            "url": { "raw": "{{base_url}}/clientes/{{cliente_id}}", "host": ["{{base_url}}"], "path": ["clientes", "{{cliente_id}}"] }
+          }
+        }
+      ]
+    }
+  ]
+}

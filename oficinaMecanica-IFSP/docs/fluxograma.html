@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Oficina Mecânica API — Fluxo da Aplicação</title>
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --primary: #2563eb;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --warning: #d97706;
+      --radius: 0.75rem;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 60%, #312e81 100%);
+      color: #fff;
+      padding: 3.5rem 2rem 2.5rem;
+      text-align: center;
+    }
+    header h1 { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.5px; }
+    header p  { opacity: .8; margin-top: .5rem; font-size: 1.05rem; }
+
+    .badges {
+      display: flex; flex-wrap: wrap; gap: .6rem;
+      justify-content: center; margin-top: 1.5rem;
+    }
+    .badge {
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 9999px;
+      padding: .25rem .85rem;
+      font-size: .8rem; font-weight: 600;
+    }
+
+    /* ── NAV ── */
+    nav {
+      background: #fff;
+      border-bottom: 2px solid var(--border);
+      position: sticky; top: 0; z-index: 200;
+      overflow-x: auto;
+    }
+    nav ul { display: flex; list-style: none; white-space: nowrap; padding: 0 1rem; }
+    nav a {
+      display: block; padding: .9rem 1.1rem;
+      color: var(--muted); text-decoration: none;
+      font-size: .875rem; font-weight: 500;
+      border-bottom: 2px solid transparent;
+      transition: color .15s, border-color .15s;
+    }
+    nav a:hover { color: var(--primary); border-color: var(--primary); }
+
+    /* ── MAIN ── */
+    main { max-width: 1120px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+    section { margin-bottom: 4.5rem; }
+
+    /* ── SECTION HEADER ── */
+    .sec-head {
+      display: flex; align-items: center; gap: 1rem;
+      margin-bottom: 1.75rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--border);
+    }
+    .sec-icon {
+      width: 3rem; height: 3rem; border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; flex-shrink: 0;
+    }
+    .sec-head h2 { font-size: 1.45rem; font-weight: 700; }
+    .sec-head p  { font-size: .9rem; color: var(--muted); margin-top: .15rem; }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,.05);
+      margin-bottom: 1.25rem;
+      overflow-x: auto;
+    }
+    .card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text); }
+
+    /* ── MERMAID ── */
+    .mermaid { display: flex; justify-content: center; overflow-x: auto; }
+
+    /* ── STATUS CHAIN ── */
+    .chain {
+      display: flex; flex-wrap: wrap;
+      align-items: center; gap: .5rem;
+      padding: 1.25rem 1.5rem;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .sbox {
+      padding: .45rem 1rem; border-radius: .5rem;
+      font-size: .8rem; font-weight: 700;
+      text-align: center; min-width: 110px; border-width: 1px; border-style: solid;
+    }
+    .s-rec  { background:#dbeafe; color:#1e40af; border-color:#93c5fd; }
+    .s-diag { background:#fef9c3; color:#854d0e; border-color:#fde047; }
+    .s-orc  { background:#ede9fe; color:#5b21b6; border-color:#c4b5fd; }
+    .s-exec { background:#dcfce7; color:#166534; border-color:#86efac; }
+    .s-fin  { background:#cffafe; color:#155e75; border-color:#67e8f9; }
+    .s-ent  { background:#d1fae5; color:#065f46; border-color:#6ee7b7; }
+    .s-atr  { background:#fee2e2; color:#991b1b; border-color:#fca5a5; }
+    .arrow  { color:#94a3b8; font-size:1.25rem; font-weight:700; }
+    .branch {
+      display: flex; flex-direction: column;
+      align-items: center; gap: .3rem;
+    }
+    .branch-label { font-size:.75rem; color:var(--muted); font-style:italic; }
+
+    /* ── GRID ── */
+    .g2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 1.25rem; margin-top: 1rem;
+    }
+
+    /* ── NOTES ── */
+    .note {
+      border-radius: .5rem; padding: 1rem 1.25rem; margin-top: 1rem;
+      border-left: 4px solid; border: 1px solid;
+    }
+    .note-w { background:#fffbeb; border-color:#fde68a; border-left-color:#f59e0b; }
+    .note-w strong { color:#92400e; }
+    .note-w p { color:#78350f; font-size:.875rem; }
+    .note-e { background:#fef2f2; border-color:#fecaca; border-left-color:#ef4444; }
+    .note-e strong { color:#991b1b; }
+    .note-e p { color:#7f1d1d; font-size:.875rem; }
+    .note-s { background:#f0fdf4; border-color:#bbf7d0; border-left-color:#22c55e; }
+    .note-s strong { color:#166534; }
+    .note-s p { color:#14532d; font-size:.875rem; }
+    .note-i { background:#eff6ff; border-color:#bfdbfe; border-left-color:#3b82f6; }
+    .note-i strong { color:#1e3a8a; }
+    .note-i p { color:#1e40af; font-size:.875rem; }
+
+    /* ── TABLE ── */
+    table { width:100%; border-collapse:collapse; font-size:.875rem; }
+    th { background:#1e293b; color:#fff; padding:.75rem 1rem; text-align:left; font-weight:600; }
+    td { padding:.7rem 1rem; border-bottom:1px solid var(--border); vertical-align:middle; }
+    tr:last-child td { border-bottom:none; }
+    tr:hover td { background:#f8fafc; }
+
+    /* ── ROLE BADGES ── */
+    .rb { display:inline-block; padding:.15rem .6rem; border-radius:9999px; font-size:.75rem; font-weight:700; margin:.1rem; }
+    .rb-admin  { background:#fee2e2; color:#991b1b; }
+    .rb-atend  { background:#dbeafe; color:#1e40af; }
+    .rb-mec    { background:#d1fae5; color:#065f46; }
+    .rb-all    { background:#f3f4f6; color:#374151; }
+
+    /* ── METHOD BADGES ── */
+    .m { display:inline-block; padding:.1rem .5rem; border-radius:.25rem; font-family:monospace; font-size:.78rem; font-weight:800; margin-right:.4rem; }
+    .m-get    { background:#dbeafe; color:#1d4ed8; }
+    .m-post   { background:#dcfce7; color:#15803d; }
+    .m-put    { background:#fef9c3; color:#a16207; }
+    .m-patch  { background:#ede9fe; color:#6d28d9; }
+    .m-delete { background:#fee2e2; color:#b91c1c; }
+
+    code {
+      background:#f1f5f9; border:1px solid #e2e8f0;
+      border-radius:.25rem; padding:.1rem .4rem;
+      font-family:'Courier New', monospace;
+      font-size:.85em; color:#7c3aed;
+    }
+
+    /* ── STEPS ── */
+    .steps { list-style:none; padding-left:0; counter-reset:s; }
+    .steps li {
+      counter-increment:s;
+      padding:.7rem 1rem .7rem 3.5rem;
+      position:relative;
+      border-left:2px solid #e2e8f0;
+      margin-left:1rem; margin-bottom:.35rem;
+    }
+    .steps li::before {
+      content:counter(s);
+      position:absolute; left:-1.1rem; top:.65rem;
+      width:2rem; height:2rem; border-radius:50%;
+      background:var(--primary); color:#fff;
+      display:flex; align-items:center; justify-content:center;
+      font-size:.8rem; font-weight:800;
+    }
+    .steps li:last-child { border-left-color:transparent; }
+    .steps li p { color:var(--muted); font-size:.875rem; }
+
+    /* ── LAYER STRIP ── */
+    .layers {
+      display: flex; gap: 0; border-radius: var(--radius);
+      overflow: hidden; border: 1px solid var(--border);
+      margin-bottom: 1.25rem;
+    }
+    .layer {
+      flex: 1; padding: 1rem .75rem; text-align: center;
+      border-right: 1px solid rgba(0,0,0,.08);
+    }
+    .layer:last-child { border-right: none; }
+    .layer-icon { font-size: 1.75rem; }
+    .layer-name { font-size: .8rem; font-weight: 700; margin-top: .35rem; }
+    .layer-sub  { font-size: .7rem; color: var(--muted); margin-top: .15rem; }
+    .l1 { background:#eff6ff; }
+    .l2 { background:#fef9c3; }
+    .l3 { background:#f0fdf4; }
+    .l4 { background:#fdf4ff; }
+    .l5 { background:#fff1f2; }
+    .l6 { background:#f8fafc; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════ HEADER ═══════════════════════════ -->
+<header>
+  <h1>🔧 Oficina Mecânica API</h1>
+  <p>Fluxo completo da aplicação — do HTTP à resposta</p>
+  <div class="badges">
+    <span class="badge">☕ Java 17</span>
+    <span class="badge">🍃 Spring Boot 3.5.7</span>
+    <span class="badge">🔐 Spring Security + JWT</span>
+    <span class="badge">🗄️ JPA / Hibernate</span>
+    <span class="badge">📧 JavaMailSender</span>
+    <span class="badge">🧪 JUnit 5 • 32 testes</span>
+  </div>
+</header>
+
+<!-- ═══════════════════════════ NAV ═══════════════════════════ -->
+<nav>
+  <ul>
+    <li><a href="#arquitetura">🏗️ Arquitetura</a></li>
+    <li><a href="#seguranca">🔐 Segurança</a></li>
+    <li><a href="#autenticacao">🔑 Autenticação</a></li>
+    <li><a href="#cadastros">📋 Cadastros</a></li>
+    <li><a href="#os">📄 Ordem de Serviço</a></li>
+    <li><a href="#status">🔄 Status</a></li>
+    <li><a href="#estoque">📦 Estoque</a></li>
+    <li><a href="#pagamento">💰 Pagamento</a></li>
+    <li><a href="#permissoes">🛡️ Permissões</a></li>
+  </ul>
+</nav>
+
+<main>
+
+<!-- ═══════════════════════════ ARQUITETURA ═══════════════════════════ -->
+<section id="arquitetura">
+  <div class="sec-head">
+    <div class="sec-icon" style="background:#eff6ff;">🏗️</div>
+    <div>
+      <h2>Arquitetura em Camadas</h2>
+      <p>Cada requisição percorre as camadas da esquerda para a direita antes de retornar</p>
+    </div>
+  </div>
+
+  <div class="layers">
+    <div class="layer l1">
+      <div class="layer-icon">🌐</div>
+      <div class="layer-name">HTTP Client</div>
+      <div class="layer-sub">Postman / Frontend / Mobile</div>
+    </div>
+    <div class="layer l2">
+      <div class="layer-icon">🔐</div>
+      <div class="layer-name">Filtro JWT</div>
+      <div class="layer-sub">OncePerRequestFilter<br>valida Bearer token</div>
+    </div>
+    <div class="layer l3">
+      <div class="layer-icon">🛡️</div>
+      <div class="layer-name">Spring Security</div>
+      <div class="layer-sub">@PreAuthorize<br>role-based access</div>
+    </div>
+    <div class="layer l4">
+      <div class="layer-icon">🎮</div>
+      <div class="layer-name">Controller</div>
+      <div class="layer-sub">REST endpoints<br>@Valid, @PathVariable</div>
+    </div>
+    <div class="layer l5">
+      <div class="layer-icon">⚙️</div>
+      <div class="layer-name">Service</div>
+      <div class="layer-sub">Regras de negócio<br>@Transactional</div>
+    </div>
+    <div class="layer l6">
+      <div class="layer-icon">🗄️</div>
+      <div class="layer-name">Repository</div>
+      <div class="layer-sub">Spring Data JPA<br>MySQL / H2</div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <h3>📡 Fluxo de uma requisição autenticada</h3>
+      <ol class="steps">
+        <li>Cliente envia <code>Authorization: Bearer &lt;token&gt;</code>
+          <p>Header obrigatório em todos os endpoints, exceto <code>POST /auth/login</code></p>
+        </li>
+        <li>JwtAuthenticationFilter valida o JWT
+          <p>Verifica assinatura HS256, expiração e extrai email + role</p>
+        </li>
+        <li>Spring Security popula o SecurityContext
+          <p>Usuário autenticado disponível via <code>Authentication</code> para @PreAuthorize</p>
+        </li>
+        <li>Controller recebe a requisição e chama o Service
+          <p>Bean validation (@Valid) ocorre antes de chegar ao método</p>
+        </li>
+        <li>Service aplica as regras de negócio e persiste via Repository
+          <p>Exceções de negócio → 422, Not Found → 404</p>
+        </li>
+        <li>Controller serializa a resposta para JSON e retorna ao cliente</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>🗂️ Entidades principais</h3>
+      <div class="mermaid">
+%%{init: {'theme': 'neutral'}}%%
+erDiagram
+    Cliente ||--o{ Carro : "possui"
+    Cliente ||--o{ Order : "tem"
+    Carro   ||--o{ Order : "associado"
+    Order   ||--o{ OrderProduto : "contém"
+    Order   ||--o{ OrderServico : "contém"
+    Order   ||--o| Pagamento    : "tem"
+    Produto ||--o{ OrderProduto : "aparece em"
+    Servico ||--o{ OrderServico : "aparece em"
+    Usuario }|--|| TipoUsuario  : "tem role"
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ SEGURANÇA ═══════════════════════════ -->
+<section id="seguranca">
+  <div class="sec-head">
+    <div class="sec-icon" style="background:#fef9c3;">🔐</div>
+    <div>
+      <h2>Camada de Segurança — JWT Filter</h2>
+      <p>Toda requisição passa pelo filtro antes de chegar aos controllers</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#dbeafe', 'primaryTextColor': '#1e3a8a', 'primaryBorderColor': '#3b82f6', 'lineColor': '#64748b', 'secondaryColor': '#dcfce7', 'tertiaryColor': '#fef9c3', 'errorBkgColor': '#fee2e2', 'errorTextColor': '#991b1b'}}}%%
+flowchart TD
+    A([📡 Requisição HTTP]) --> B
+
+    B{Header\nAuthorization\npresente?}
+    B -->|Não| PUB{Endpoint\npúblico?}
+    PUB -->|Sim — POST /auth/login| ALLOW([✅ Continua sem auth])
+    PUB -->|Não| E401A(["❌ 401 Unauthorized\nfiltro rejeita"])
+
+    B -->|Sim| C[Extrai o token\nBearer &lt;jwt&gt;]
+    C --> D{Assinatura HS256\nválida?}
+    D -->|Não| E401B(["❌ 401 Unauthorized"])
+    D -->|Sim| E{Token\nexpirado?}
+    E -->|Sim| E401C(["❌ 401 Unauthorized"])
+    E -->|Não| F[Extrai email e role\ndo payload]
+    F --> G[Cria UsernamePasswordAuthenticationToken\npopula SecurityContext]
+    G --> H[Chain continua\npara o Controller]
+    H --> I{@PreAuthorize\nverifica role}
+    I -->|Role insuficiente| E403(["❌ 403 Forbidden"])
+    I -->|Role OK| OK(["✅ Método do controller executado"])
+
+    style E401A fill:#fee2e2,stroke:#dc2626,color:#991b1b
+    style E401B fill:#fee2e2,stroke:#dc2626,color:#991b1b
+    style E401C fill:#fee2e2,stroke:#dc2626,color:#991b1b
+    style E403  fill:#fef9c3,stroke:#d97706,color:#854d0e
+    style ALLOW fill:#d1fae5,stroke:#16a34a,color:#065f46
+    style OK    fill:#d1fae5,stroke:#16a34a,color:#065f46
+    </div>
+  </div>
+
+  <div class="note note-i">
+    <strong>💡 Stateless por design</strong>
+    <p>Não há sessão no servidor. Cada requisição precisa do JWT completo.
+       O token carrega <code>email</code>, <code>role</code> e <code>exp</code> (expiração) no payload.
+       Segredo configurado via variável de ambiente <code>JWT_SECRET</code>.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ AUTENTICAÇÃO ═══════════════════════════ -->
+<section id="autenticacao">
+  <div class="sec-head">
+    <div class="sec-icon" style="background:#d1fae5;">🔑</div>
+    <div>
+      <h2>Autenticação e Gestão de Usuários</h2>
+      <p>Login gera JWT · Apenas ADMIN cria novos usuários</p>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <h3>🔓 POST /auth/login — fluxo de login</h3>
+      <div class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#d1fae5', 'primaryTextColor': '#065f46', 'primaryBorderColor': '#10b981', 'lineColor': '#64748b'}}}%%
+sequenceDiagram
+    actor U as Cliente
+    participant A as POST /auth/login
+    participant DB as Banco
+    participant J as JwtUtil
+
+    U->>A: { email, senha }
+    A->>DB: findByEmail(email)
+    alt E-mail não existe
+        DB-->>A: Optional.empty()
+        A-->>U: 401 Unauthorized
+    else E-mail existe
+        DB-->>A: Usuario { senha: hash }
+        A->>A: BCrypt.matches(senha, hash)
+        alt Senha inválida
+            A-->>U: 401 Unauthorized
+        else Senha válida
+            A->>J: gerarToken(usuario)
+            J-->>A: JWT assinado HS256
+            A-->>U: 200 { token, email, role }
+        end
+    end
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>👤 POST /auth/cadastrar — apenas ADMIN</h3>
+      <div class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#ede9fe', 'primaryTextColor': '#4c1d95', 'primaryBorderColor': '#7c3aed', 'lineColor': '#64748b'}}}%%
+flowchart TD
+    A([ADMIN envia\n{ nome, email, senha, tipo }]) --> B{Token JWT\ncom role ADMIN?}
+    B -->|Não| E403(["❌ 403 Forbidden"])
+    B -->|Sim| C{E-mail já\ncadastrado?}
+    C -->|Sim| E422(["❌ 422 E-mail já existe"])
+    C -->|Não| D{Validação\n@NotBlank @Email\n@Size mín. 6}
+    D -->|Falha| E400(["❌ 400 Bad Request"])
+    D -->|OK| E[Hash BCrypt\nSalva Usuário]
+    E --> F(["✅ 201 UsuarioResponseDto\n{ id, nome, email, tipo }"])
+
+    style E403 fill:#fee2e2,stroke:#dc2626,color:#991b1b
+    style E422 fill:#fef9c3,stroke:#d97706,color:#854d0e
+    style E400 fill:#fef9c3,stroke:#d97706,color:#854d0e
+    style F fill:#d1fae5,stroke:#16a34a,color:#065f46
+      </div>
+      <div class="note note-s" style="margin-top:.75rem">
+        <strong>✅ Admin padrão criado na primeira execução</strong>
+        <p><code>DataInitializer</code> cria <code>admin@oficina.com</code> / <code>admin123</code> automaticamente se nenhum ADMIN existir no banco.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🎭 Roles disponíveis</h3>
+    <table>
+      <thead>
+        <tr><th>Role</th><th>Responsabilidade</th><th>Criado por</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="rb rb-admin">ADMIN</span></td>
+          <td>Acesso total — pode executar qualquer operação</td>
+          <td>Automático (DataInitializer) ou outro ADMIN</td>
+        </tr>
+        <tr>
+          <td><span class="rb rb-atend">ATENDENTE</span></td>
+          <td>Cadastros de entidades, abertura de OS, registro de pagamentos</td>
+          <td>ADMIN</td>
+        </tr>
+        <tr>
+          <td><span class="rb rb-mec">MECANICO</span></td>
+          <td>Adicionar itens à OS, atualizar status</td>
+          <td>ADMIN</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ CADASTROS ═══════════════════════════ -->
+<section id="cadastros">
+  <div class="sec-head">
+    <div class="sec-icon" style="background:#eff6ff;">📋</div>
+    <div>
+      <h2>Cadastros</h2>
+      <p>ATENDENTE e ADMIN mantêm o catálogo base da oficina</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#dbeafe', 'primaryTextColor': '#1e3a8a', 'primaryBorderColor': '#3b82f6', 'lineColor': '#64748b', 'secondaryColor': '#dcfce7'}}}%%
+flowchart LR
+    subgraph CLI["👤 Clientes"]
+        direction TB
+        A1[POST /clientes] --> A2([✅ 201 Cliente])
+        A3[GET /clientes] --> A4([✅ 200 Page])
+        A5[PUT /clientes/id] --> A6([✅ 200 atualizado])
+        A7[DELETE /clientes/id] --> A8([✅ 204])
+    end
+
+    subgraph CAR["🚗 Carros"]
+        direction TB
+        B1[POST /carros] --> B2{Carro pertence\nao cliente?}
+        B2 -->|Não| BE(["❌ 422"])
+        B2 -->|Sim| B3([✅ 201 Carro])
+    end
+
+    subgraph SVC["🔩 Serviços"]
+        direction TB
+        C1[POST /servicos] --> C2([✅ 201 Serviço\nnome + preço + duração])
+    end
+
+    subgraph PROD["📦 Produtos/Peças"]
+        direction TB
+        D1[POST /produtos] --> D2([✅ 201 Produto\ntipo: PECA | PRODUTO\nquantidade + qtdMinima])
+        D3[POST /produtos/id/entrada] --> D4([✅ 200 Estoque\nincrementado])
+    end
+
+    style BE fill:#fee2e2,stroke:#dc2626,color:#991b1b
+    </div>
+  </div>
+
+  <div class="note note-i">
+    <strong>📸 Snapshot Pattern</strong>
+    <p>Quando um produto ou serviço é adicionado a uma OS, seus dados (nome, preço) são copiados — <em>snapshot</em> — para <code>OrderProduto</code> / <code>OrderServico</code>.
+    Mudanças futuras no catálogo <strong>não afetam</strong> OSs já abertas.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ ORDEM DE SERVIÇO ═══════════════════════════ -->
+<section id="os">
+  <div class="sec-head">
+    <div class="sec-icon" style="background:#fef9c3;">📄</div>
+    <div>
+      <h2>Ciclo de Vida da Ordem de Serviço</h2>
+      <p>Da abertura pelo atendente até a entrega ao cliente</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#fef9c3', 'primaryTextColor': '#78350f', 'primaryBorderColor': '#f59e0b', 'lineColor': '#64748b', 'secondaryColor': '#dcfce7', 'tertiaryColor': '#ede9fe'}}}%%
+flowchart TD
+    START(["👤 ATENDENTE — POST /orders"]) --> V1{Cliente\nexiste?}
+    V1 -->|Não| E404(["❌ 404 Not Found"])
+    V1 -->|Sim| V2{carroId\ninformado?}
+    V2 -->|Sim| V3{Carro do\ncliente?}
+    V3 -->|Não| E422A(["❌ 422 Regra de negócio"])
+    V3 -->|Sim| OS_OPEN
+    V2 -->|Não| OS_OPEN(["📄 OS criada\nstatus: RECEBIDO\ntotal: R$ 0,00"])
+
+    OS_OPEN --> MECH(["🔧 MECANICO adiciona itens"])
+
+    MECH -->|POST /{id}/produtos| P1{Produto\njá na OS?}
+    P1 -->|Sim| E422B(["❌ 422 Duplicado"])
+    P1 -->|Não| P2{Estoque\nsuficiente?}
+    P2 -->|Não| E422C(["❌ 422 Sem estoque"])
+    P2 -->|Sim| P3["Decrementa estoque\nSnapshot → OrderProduto\nTotal recalculado"]
+    P3 --> P4{qty &lt; qtdMinima?}
+    P4 -->|Sim| P5["📧 Email alerta\npara admin"]
+    P4 -->|Não| ITEM_OK
+    P5 --> ITEM_OK(["✅ Item adicionado"])
+
+    MECH -->|POST /{id}/servicos| S1{Serviço\njá na OS?}
+    S1 -->|Sim| E422D(["❌ 422 Duplicado"])
+    S1 -->|Não| S2["Snapshot → OrderServico\nTotal recalculado"]
+    S2 --> ITEM_OK
+
+    ITEM_OK --> STATUS(["🔄 MECANICO — PATCH /{id}/status"])
+    STATUS --> ST1{Transição\nválida?}
+    ST1 -->|Não| E422E(["❌ 422 Transição inválida"])
+    ST1 -->|Sim| ST2{Precisa de\ndataValidade?}
+    ST2 -->|AGUARDANDO_APROVACAO\nsem data| E422F(["❌ 422 dataValidade obrigatória"])
+    ST2 -->|OK| ST3{FINALIZADO\nou ENTREGUE?}
+    ST3 -->|Sem pagamento| E422G(["❌ 422 Registrar pagamento\nprimeiro"])
+    ST3 -->|Com pagamento\nou outro status| ST4["Aplica novo status"]
+    ST4 --> EMAIL["📧 Email ao cliente\natualização de status"]
+    EMAIL --> DONE(["✅ OS atualizada"])
+
+    style E404  fill:#fee2e2,stroke:#dc2626,color:#991b1b
+    style E422A fill:#fee2e2,stroke:#dc2626,color:#991b1b
+    style E422B fill:#fee2e2,stroke:#dc2626,color:#991b1b
+    style E422C fill:#fee2e2,stroke:#dc2626,color:#991b1b
+    style E422D fill:#fee2e2,stroke:#dc2626,color:#991b1b
+    style E422E fill:#fee2e2,stroke:#dc2626,color:#991b1b
+    style E422F fill:#fee2e2,stroke:#dc2626,color:#991b1b
+    style E422G fill:#fee2e2,stroke:#dc2626,color:#991b1b
+    style OS_OPEN fill:#dbeafe,stroke:#3b82f6,color:#1e3a8a
+    style ITEM_OK fill:#dcfce7,stroke:#16a34a,color:#166534
+    style DONE fill:#dcfce7,stroke:#16a34a,color:#166534
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="note note-i">
+      <strong>💡 Total calculado automaticamente</strong>
+      <p>
+        <code>Order.getTotal()</code> soma <code>OrderItem.getSubTotal()</code> de cada item.<br>
+        Produto: <code>preço × quantidade</code><br>
+        Serviço: <code>preço × 1</code>
+      </p>
+    </div>
+    <div class="note note-w">
+      <strong>⚠️ Remoção devolve ao estoque</strong>
+      <p>Ao remover um produto da OS via <code>DELETE /orders/{id}/produtos/{produtoId}</code>, o estoque é <strong>incrementado</strong> automaticamente pela quantidade que foi reservada.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ STATUS ═══════════════════════════ -->
+<section id="status">
+  <div class="sec-head">
+    <div class="sec-icon" style="background:#dcfce7;">🔄</div>
+    <div>
+      <h2>Workflow de Status</h2>
+      <p>Cada transição é validada — não é possível pular etapas</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Transições permitidas</h3>
+    <div class="chain" style="margin-top:.75rem">
+      <div class="sbox s-rec">RECEBIDO</div>
+      <span class="arrow">→</span>
+      <div class="sbox s-diag">EM<br>DIAGNÓSTICO</div>
+      <span class="arrow">→</span>
+      <div class="sbox s-orc">AGUARDANDO<br>APROVAÇÃO<br><small style="font-weight:400">+ dataValidade</small></div>
+      <span class="arrow">→</span>
+      <div class="sbox s-exec">EM<br>EXECUÇÃO</div>
+      <span class="arrow">→</span>
+      <div class="sbox s-fin">FINALIZADO<br><small style="font-weight:400">💳 exige pag.</small></div>
+      <span class="arrow">→</span>
+      <div class="sbox s-ent">ENTREGUE<br><small style="font-weight:400">💳 exige pag.</small></div>
+    </div>
+
+    <div style="margin-top:1rem; display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:.5rem">
+        <div class="sbox s-atr" style="min-width:80px">EM ATRASO</div>
+        <span style="font-size:.85rem;color:var(--muted)">← qualquer status ativo pode ir para EM_ATRASO<br>e EM_ATRASO retorna para EM_EXECUÇÃO</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Quem pode alterar o status?</h3>
+    <div class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#dcfce7', 'primaryTextColor': '#166534', 'primaryBorderColor': '#16a34a', 'lineColor': '#64748b'}}}%%
+flowchart LR
+    ATEND(["👨‍💼 ATENDENTE"]) -->|❌ não pode| STATUS_EP
+    MECH(["🔧 MECÂNICO"]) -->|✅ pode| STATUS_EP
+    ADMIN(["👑 ADMIN"]) -->|✅ pode| STATUS_EP
+    STATUS_EP["PATCH /orders/{id}/status\n@PreAuthorize MECANICO + ADMIN"] --> LOGIC["OrderService\n.atualizarStatus()"]
+    LOGIC --> VALID["Valida transição\nValida dataValidade\nValida pagamento"]
+
+    style ATEND fill:#fee2e2,stroke:#dc2626,color:#991b1b
+    style MECH fill:#dcfce7,stroke:#16a34a,color:#166534
+    style ADMIN fill:#fef9c3,stroke:#d97706,color:#854d0e
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="note note-e">
+      <strong>❌ Exemplos de transições inválidas — 422</strong>
+      <p>
+        <code>RECEBIDO → ENTREGUE</code> — pula etapas<br>
+        <code>ENTREGUE → qualquer</code> — status terminal<br>
+        <code>EM_EXECUCAO → RECEBIDO</code> — retrocesso não permitido
+      </p>
+    </div>
+    <div class="note note-s">
+      <strong>✅ Exemplos de transições válidas</strong>
+      <p>
+        <code>RECEBIDO → EM_DIAGNOSTICO</code><br>
+        <code>EM_EXECUCAO → EM_ATRASO</code><br>
+        <code>EM_ATRASO → EM_EXECUCAO</code> (retomada)
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ ESTOQUE ═══════════════════════════ -->
+<section id="estoque">
+  <div class="sec-head">
+    <div class="sec-icon" style="background:#fffbeb;">📦</div>
+    <div>
+      <h2>Controle de Estoque</h2>
+      <p>Baixa automática ao usar, alerta quando atingir o mínimo</p>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <h3>📉 Fluxo de saída (uso na OS)</h3>
+      <div class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#fef9c3', 'primaryTextColor': '#78350f', 'primaryBorderColor': '#f59e0b', 'lineColor': '#64748b'}}}%%
+flowchart TD
+    A(["MECÂNICO adiciona\nproduto/peça à OS"]) --> B{quantidade disponível\n≥ quantidade solicitada?}
+    B -->|Não| E(["❌ 422\nEstoque insuficiente\n—\ndisponível: X, solicitado: Y"])
+    B -->|Sim| C["EstoqueService.decrementar()\nquantidade -= solicitado\nSalva no banco"]
+    C --> D{qty atual &lt;\nquantidadeMinima?}
+    D -->|Não| OK(["✅ Produto na OS\nTotal atualizado"])
+    D -->|Sim| E2["📧 EmailService\n.enviarAlertaEstoque()\n→ admin@oficina.com\nHTML com produto + qtds"]
+    E2 --> OK
+
+    style E fill:#fee2e2,stroke:#dc2626,color:#991b1b
+    style OK fill:#d1fae5,stroke:#16a34a,color:#065f46
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>📈 Fluxo de entrada e consulta</h3>
+      <div class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#dcfce7', 'primaryTextColor': '#166534', 'primaryBorderColor': '#16a34a', 'lineColor': '#64748b'}}}%%
+flowchart TD
+    IN(["ATENDENTE — POST /produtos/{id}/entrada\n{ quantidade: N }"]) --> INC["EstoqueService.registrarEntrada()\nquantidade += N"]
+    INC --> R1(["✅ 200 ProdutoResponseDto\nquantidade atualizada"])
+
+    DEV(["MECÂNICO — DELETE /orders/{id}/produtos/{pid}"]) --> DEINC["EstoqueService.incrementar()\nquantidade += qty do snapshot"]
+    DEINC --> R2(["✅ 200 OS sem o produto\nestoque restaurado"])
+
+    QUERY(["GET /produtos/estoque-critico"]) --> Q["WHERE quantidade &lt; quantidadeMinima\nORDER BY nome — paginado"]
+    Q --> R3(["✅ 200 Page de produtos\nabaixo do mínimo"])
+
+    style R1 fill:#d1fae5,stroke:#16a34a,color:#065f46
+    style R2 fill:#d1fae5,stroke:#16a34a,color:#065f46
+    style R3 fill:#d1fae5,stroke:#16a34a,color:#065f46
+      </div>
+    </div>
+  </div>
+
+  <div class="note note-w">
+    <strong>⚠️ Alerta de estoque — dois mecanismos</strong>
+    <p>
+      <strong>Reativo:</strong> <code>GET /produtos/estoque-critico</code> — consulta manual a qualquer momento.<br>
+      <strong>Proativo:</strong> após cada baixa de estoque, se <code>qtdAtual &lt; qtdMinima</code>, o sistema envia automaticamente
+      um email HTML para o endereço configurado em <code>app.admin.email</code>.
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ PAGAMENTO ═══════════════════════════ -->
+<section id="pagamento">
+  <div class="sec-head">
+    <div class="sec-icon" style="background:#d1fae5;">💰</div>
+    <div>
+      <h2>Financeiro — Pagamento</h2>
+      <p>Registrar pagamento é obrigatório para encerrar a OS</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#d1fae5', 'primaryTextColor': '#065f46', 'primaryBorderColor': '#10b981', 'lineColor': '#64748b'}}}%%
+flowchart LR
+    A(["POST /pagamentos\n{ orderId, valor, formaPagamento }"]) --> B{OS\nexiste?}
+    B -->|Não| E404(["❌ 404 Not Found"])
+    B -->|Sim| C{Já existe\npagamento\npara essa OS?}
+    C -->|Sim| E422(["❌ 422 Pagamento\njá registrado"])
+    C -->|Não| D["Salva Pagamento\norderId + valor + formaPagamento"]
+    D --> OK(["✅ 201 PagamentoResponseDto"])
+    OK --> UNBLOCK["🔓 Libera transições\nFINALIZADO e ENTREGUE"]
+
+    style E404 fill:#fee2e2,stroke:#dc2626,color:#991b1b
+    style E422 fill:#fee2e2,stroke:#dc2626,color:#991b1b
+    style OK fill:#d1fae5,stroke:#16a34a,color:#065f46
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>💳 Formas de pagamento aceitas</h3>
+    <div style="display:flex;flex-wrap:wrap;gap:.6rem;margin-top:.5rem">
+      <span class="rb" style="background:#dbeafe;color:#1e40af;font-size:.85rem;padding:.35rem .9rem">💵 DINHEIRO</span>
+      <span class="rb" style="background:#d1fae5;color:#065f46;font-size:.85rem;padding:.35rem .9rem">📱 PIX</span>
+      <span class="rb" style="background:#ede9fe;color:#4c1d95;font-size:.85rem;padding:.35rem .9rem">💳 CARTÃO CRÉDITO</span>
+      <span class="rb" style="background:#fce7f3;color:#9d174d;font-size:.85rem;padding:.35rem .9rem">💳 CARTÃO DÉBITO</span>
+      <span class="rb" style="background:#fef9c3;color:#854d0e;font-size:.85rem;padding:.35rem .9rem">🏦 TRANSFERÊNCIA</span>
+      <span class="rb" style="background:#f1f5f9;color:#475569;font-size:.85rem;padding:.35rem .9rem">📄 BOLETO</span>
+    </div>
+  </div>
+
+  <div class="note note-i">
+    <strong>📋 Geração de orçamento</strong>
+    <p>
+      Ao mover o status para <code>AGUARDANDO_APROVACAO</code>, o campo <code>dataValidade</code> é obrigatório no body.
+      Isso gera o orçamento com prazo definido. O total da OS no momento é o valor do orçamento
+      (<code>Σ serviços + Σ peças × quantidade</code>).
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ PERMISSÕES ═══════════════════════════ -->
+<section id="permissoes">
+  <div class="sec-head">
+    <div class="sec-icon" style="background:#fce7f3;">🛡️</div>
+    <div>
+      <h2>Mapa de Permissões</h2>
+      <p>Quem pode chamar cada endpoint</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Endpoint</th>
+          <th>Operação</th>
+          <th>Roles</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="m m-post">POST</span><code>/auth/login</code></td>
+          <td>Autenticar e receber JWT</td>
+          <td><span class="rb rb-all">Público</span></td>
+        </tr>
+        <tr>
+          <td><span class="m m-post">POST</span><code>/auth/cadastrar</code></td>
+          <td>Criar novo usuário</td>
+          <td><span class="rb rb-admin">ADMIN</span></td>
+        </tr>
+        <tr>
+          <td><span class="m m-get">GET</span><code>/clientes</code> <span class="m m-get">GET</span><code>/{id}</code> <span class="m m-get">GET</span><code>/doc/{doc}</code></td>
+          <td>Listar / buscar cliente / buscar por CPF-CNPJ</td>
+          <td><span class="rb rb-all">Autenticado</span></td>
+        </tr>
+        <tr>
+          <td><span class="m m-post">POST</span><code>/clientes</code> <span class="m m-put">PUT</span><code>/{id}</code> <span class="m m-delete">DELETE</span><code>/{id}</code></td>
+          <td>Criar / atualizar / remover cliente</td>
+          <td><span class="rb rb-all">Autenticado</span></td>
+        </tr>
+        <tr>
+          <td><span class="m m-post">POST</span><code>/carros</code> <span class="m m-put">PUT</span><code>/{id}</code> <span class="m m-delete">DELETE</span><code>/{id}</code></td>
+          <td>Criar / atualizar / remover carro</td>
+          <td><span class="rb rb-all">Autenticado</span></td>
+        </tr>
+        <tr>
+          <td><span class="m m-post">POST</span><code>/servicos</code> <span class="m m-put">PUT</span><code>/{id}</code> <span class="m m-delete">DELETE</span><code>/{id}</code></td>
+          <td>Criar / atualizar / remover serviço</td>
+          <td><span class="rb rb-all">Autenticado</span></td>
+        </tr>
+        <tr>
+          <td><span class="m m-post">POST</span><code>/produtos</code> <span class="m m-put">PUT</span></td>
+          <td>Criar / atualizar produto</td>
+          <td><span class="rb rb-atend">ATENDENTE</span><span class="rb rb-admin">ADMIN</span></td>
+        </tr>
+        <tr>
+          <td><span class="m m-post">POST</span><code>/produtos/{id}/entrada</code></td>
+          <td>Registrar entrada de estoque</td>
+          <td><span class="rb rb-atend">ATENDENTE</span><span class="rb rb-admin">ADMIN</span></td>
+        </tr>
+        <tr>
+          <td><span class="m m-get">GET</span><code>/produtos/estoque-critico</code></td>
+          <td>Listar produtos abaixo do mínimo</td>
+          <td><span class="rb rb-all">Autenticado</span></td>
+        </tr>
+        <tr>
+          <td><span class="m m-post">POST</span><code>/orders</code></td>
+          <td>Abrir Ordem de Serviço</td>
+          <td><span class="rb rb-atend">ATENDENTE</span><span class="rb rb-admin">ADMIN</span></td>
+        </tr>
+        <tr>
+          <td><span class="m m-put">PUT</span><code>/orders/{id}</code></td>
+          <td>Alterar cliente / carro da OS</td>
+          <td><span class="rb rb-atend">ATENDENTE</span><span class="rb rb-admin">ADMIN</span></td>
+        </tr>
+        <tr>
+          <td><span class="m m-patch">PATCH</span><code>/orders/{id}/status</code></td>
+          <td>Atualizar status da OS</td>
+          <td><span class="rb rb-mec">MECÂNICO</span><span class="rb rb-admin">ADMIN</span></td>
+        </tr>
+        <tr>
+          <td><span class="m m-post">POST</span><code>/orders/{id}/produtos</code></td>
+          <td>Adicionar produto/peça à OS</td>
+          <td><span class="rb rb-mec">MECÂNICO</span><span class="rb rb-admin">ADMIN</span></td>
+        </tr>
+        <tr>
+          <td><span class="m m-delete">DELETE</span><code>/orders/{id}/produtos/{pid}</code></td>
+          <td>Remover produto da OS</td>
+          <td><span class="rb rb-mec">MECÂNICO</span><span class="rb rb-admin">ADMIN</span></td>
+        </tr>
+        <tr>
+          <td><span class="m m-post">POST</span><code>/orders/{id}/servicos</code></td>
+          <td>Adicionar serviço à OS</td>
+          <td><span class="rb rb-mec">MECÂNICO</span><span class="rb rb-admin">ADMIN</span></td>
+        </tr>
+        <tr>
+          <td><span class="m m-delete">DELETE</span><code>/orders/{id}/servicos/{sid}</code></td>
+          <td>Remover serviço da OS</td>
+          <td><span class="rb rb-mec">MECÂNICO</span><span class="rb rb-admin">ADMIN</span></td>
+        </tr>
+        <tr>
+          <td><span class="m m-delete">DELETE</span><code>/orders/{id}</code></td>
+          <td>Excluir OS</td>
+          <td><span class="rb rb-admin">ADMIN</span></td>
+        </tr>
+        <tr>
+          <td><span class="m m-post">POST</span><code>/pagamentos</code></td>
+          <td>Registrar pagamento</td>
+          <td><span class="rb rb-atend">ATENDENTE</span><span class="rb rb-admin">ADMIN</span></td>
+        </tr>
+        <tr>
+          <td><span class="m m-get">GET</span><code>/pagamentos/order/{orderId}</code></td>
+          <td>Consultar pagamento da OS</td>
+          <td><span class="rb rb-all">Autenticado</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note note-i">
+    <strong>🔁 Respostas de erro padronizadas</strong>
+    <p>
+      <code>401 Unauthorized</code> — token ausente, inválido ou expirado<br>
+      <code>403 Forbidden</code> — autenticado mas sem permissão para o endpoint<br>
+      <code>404 Not Found</code> — entidade não encontrada no banco<br>
+      <code>400 Bad Request</code> — falha de validação (@NotBlank, @Positive, @Email…)<br>
+      <code>422 Unprocessable Entity</code> — violação de regra de negócio
+    </p>
+  </div>
+</section>
+
+</main>
+
+<footer style="background:#1e293b;color:#94a3b8;text-align:center;padding:2rem;font-size:.85rem">
+  Oficina Mecânica IFSP — Spring Boot 3.5.7 &nbsp;|&nbsp; Java 17 &nbsp;|&nbsp; 32 testes de integração passando
+</footer>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    securityLevel: 'loose',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    fontSize: 14
+  });
+</script>
+</body>
+</html>

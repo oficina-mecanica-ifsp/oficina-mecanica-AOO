@@ -62,7 +62,7 @@ export default function ClientesPage() {
           placeholder="Buscar por nome ou documento…"
           value={search}
           onChange={(e) => { setSearch(e.target.value); reset() }}
-          className="border border-gray-300 rounded px-3 py-1.5 text-sm w-72 focus:outline-none focus:ring-2 focus:ring-green-700"
+          className="border border-gray-300 rounded px-3 py-1.5 text-sm w-72 focus:outline-none focus:ring-2 focus:ring-brand-700"
         />
       </div>
 

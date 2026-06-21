@@ -79,7 +79,7 @@ export default function CarroForm({ carro, onClose, onSaved }) {
             maxLength={14}
           />
           {clienteNome && (
-            <p className="text-xs text-green-700 font-mono mt-0.5">{clienteNome}</p>
+            <p className="text-xs text-brand-700 font-mono mt-0.5">{clienteNome}</p>
           )}
         </div>
         <div className="flex gap-2 justify-end mt-2">

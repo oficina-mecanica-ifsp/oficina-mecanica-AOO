@@ -53,7 +53,7 @@ export default function OrdensPage() {
         <select
           value={filterStatus}
           onChange={(e) => { setFilterStatus(e.target.value); reset() }}
-          className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-700"
+          className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
         >
           <option value="">Todos os status</option>
           {Object.entries(STATUS_LABELS).map(([k, v]) => (

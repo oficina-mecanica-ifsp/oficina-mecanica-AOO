@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import logo from '../../assets/logo.jpeg'
 
 export function Topbar() {
   const { email, role, logout } = useAuth()
@@ -11,9 +12,10 @@ export function Topbar() {
   }
 
   return (
-    <header className="h-13 bg-green-900 flex items-center px-5 gap-3 flex-shrink-0">
+    <header className="h-13 bg-brand-900 flex items-center px-5 gap-3 flex-shrink-0">
+      <img src={logo} alt="Mecânica PRO" className="h-8 w-8 rounded object-cover" />
       <span className="font-mono text-sm text-white/90 tracking-tight">
-        oficina<span className="text-white/40 mx-1">/</span>ifsp
+        Mecânica<span className="text-brand-700 mx-1 font-bold">PRO</span>
       </span>
       <div className="flex-1" />
       <span className="text-white/60 text-xs">{email}</span>

@@ -22,26 +22,40 @@ export default function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
+        {/* Rota pública */}
         <Route path="/login" element={<LoginPage />} />
 
+        {/* Rotas autenticadas */}
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
+            {/* Redirect raiz */}
             <Route index element={<Navigate to="/ordens" replace />} />
+
+            {/* Ordens — todos autenticados */}
             <Route path="/ordens" element={<OrdensPage />} />
             <Route path="/ordens/:id" element={<OrdemDetalhePage />} />
+
+            {/* Cadastros — todos autenticados */}
             <Route path="/clientes" element={<ClientesPage />} />
             <Route path="/carros" element={<CarrosPage />} />
             <Route path="/servicos" element={<ServicosPage />} />
+
+            {/* Produtos — todos autenticados para visualizar */}
             <Route path="/produtos" element={<ProdutosPage />} />
+
+            {/* Estoque crítico — ATENDENTE e ADMIN */}
             <Route element={<RoleGuard roles={['ADMIN', 'ATENDENTE']} />}>
               <Route path="/estoque-critico" element={<EstoqueCriticoPage />} />
             </Route>
+
+            {/* Usuários — apenas ADMIN */}
             <Route element={<RoleGuard roles={['ADMIN']} />}>
               <Route path="/usuarios" element={<UsuariosPage />} />
             </Route>
           </Route>
         </Route>
 
+        {/* 404 */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>

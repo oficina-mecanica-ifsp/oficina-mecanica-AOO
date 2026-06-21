@@ -32,7 +32,7 @@ export function Sidebar() {
               className={({ isActive }) =>
                 `flex items-center gap-2.5 px-4 py-2 text-sm transition-colors border-l-2 ${
                   isActive
-                    ? 'border-green-800 bg-green-50 text-green-900 font-medium'
+                    ? 'border-brand-800 bg-brand-50 text-brand-900 font-medium'
                     : 'border-transparent text-gray-500 hover:bg-gray-50 hover:text-gray-800'
                 }`
               }

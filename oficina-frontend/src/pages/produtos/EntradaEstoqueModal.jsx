@@ -32,7 +32,7 @@ export default function EntradaEstoqueModal({ produto, onClose, onSaved }) {
         <input
           type="number" min="1" value={quantidade}
           onChange={(e) => setQuantidade(parseInt(e.target.value))}
-          className="border border-gray-300 rounded px-3 py-1.5 text-sm w-32 focus:outline-none focus:ring-2 focus:ring-green-700"
+          className="border border-gray-300 rounded px-3 py-1.5 text-sm w-32 focus:outline-none focus:ring-2 focus:ring-brand-700"
         />
       </div>
       <div className="flex gap-2 justify-end">

@@ -9,7 +9,7 @@ export default function NotFoundPage() {
         <p className="text-sm text-gray-400 mb-6">O endereço acessado não existe.</p>
         <Link
           to="/ordens"
-          className="inline-flex items-center gap-2 bg-green-900 text-white px-5 py-2 rounded text-sm hover:bg-green-800 transition-colors"
+          className="inline-flex items-center gap-2 bg-brand-900 text-white px-5 py-2 rounded text-sm hover:bg-brand-800 transition-colors"
         >
           ← Voltar ao início
         </Link>

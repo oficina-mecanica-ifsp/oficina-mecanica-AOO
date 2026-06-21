@@ -59,7 +59,7 @@ export default function AdicionarItemModal({ ordemId, onClose, onSaved }) {
               key={t}
               onClick={() => setTipo(t)}
               className={`flex-1 py-1.5 text-sm border rounded transition-colors ${
-                tipo === t ? 'bg-green-900 text-white border-green-900' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                tipo === t ? 'bg-brand-900 text-white border-brand-900' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
               }`}
             >
               {t === 'PRODUTO' ? 'Produto' : 'Serviço'}
@@ -72,7 +72,7 @@ export default function AdicionarItemModal({ ordemId, onClose, onSaved }) {
           <select
             value={selectedId}
             onChange={(e) => setSelectedId(e.target.value)}
-            className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-700"
+            className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
           >
             {items.map((i) => (
               <option key={i.id} value={i.id}>{i.nome} — {formatBRL(i.preco)}</option>
@@ -86,7 +86,7 @@ export default function AdicionarItemModal({ ordemId, onClose, onSaved }) {
             <input
               type="number" min="1" value={quantidade}
               onChange={(e) => setQuantidade(parseInt(e.target.value))}
-              className="border border-gray-300 rounded px-3 py-1.5 text-sm w-28 focus:outline-none focus:ring-2 focus:ring-green-700"
+              className="border border-gray-300 rounded px-3 py-1.5 text-sm w-28 focus:outline-none focus:ring-2 focus:ring-brand-700"
             />
           </div>
         )}

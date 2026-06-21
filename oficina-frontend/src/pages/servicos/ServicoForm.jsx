@@ -51,12 +51,12 @@ export default function ServicoForm({ servico, onClose, onSaved }) {
           <div className="flex gap-3 items-center">
             <div className="flex items-center gap-1.5">
               <input type="number" min="0" max="99" {...register('horas')}
-                className="border border-gray-300 rounded px-3 py-1.5 text-sm w-20 focus:outline-none focus:ring-2 focus:ring-green-700" />
+                className="border border-gray-300 rounded px-3 py-1.5 text-sm w-20 focus:outline-none focus:ring-2 focus:ring-brand-700" />
               <span className="text-sm text-gray-500">h</span>
             </div>
             <div className="flex items-center gap-1.5">
               <input type="number" min="0" max="59" step="15" {...register('minutos')}
-                className="border border-gray-300 rounded px-3 py-1.5 text-sm w-20 focus:outline-none focus:ring-2 focus:ring-green-700" />
+                className="border border-gray-300 rounded px-3 py-1.5 text-sm w-20 focus:outline-none focus:ring-2 focus:ring-brand-700" />
               <span className="text-sm text-gray-500">min</span>
             </div>
           </div>

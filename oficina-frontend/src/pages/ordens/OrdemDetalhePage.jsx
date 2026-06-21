@@ -55,7 +55,7 @@ export default function OrdemDetalhePage() {
   return (
     <div>
       <div className="text-xs text-gray-400 font-mono mb-4 flex items-center gap-2">
-        <Link to="/ordens" className="text-green-700 hover:underline">← Ordens</Link>
+        <Link to="/ordens" className="text-brand-700 hover:underline">← Ordens</Link>
         <span>/</span>
         <span>#{String(ordem.id).padStart(4, '0')}</span>
       </div>
@@ -80,8 +80,8 @@ export default function OrdemDetalhePage() {
           <div
             key={s}
             className={`flex-1 text-center py-2 text-[11px] font-mono border-r border-gray-100 last:border-0 ${
-              i < pipeIdx ? 'bg-green-50 text-green-700'
-              : i === pipeIdx ? 'bg-green-900 text-white font-medium'
+              i < pipeIdx ? 'bg-brand-50 text-brand-700'
+              : i === pipeIdx ? 'bg-brand-900 text-white font-medium'
               : 'bg-gray-50 text-gray-400'
             }`}
           >
@@ -148,12 +148,12 @@ export default function OrdemDetalhePage() {
           </thead>
           <tbody>
             {(ordem.itens ?? []).length === 0 && (
-              <tr key="empty"><td colSpan={6} className="px-4 py-6 text-center text-gray-400 text-sm">Nenhum item adicionado.</td></tr>
+              <tr><td colSpan={6} className="px-4 py-6 text-center text-gray-400 text-sm">Nenhum item adicionado.</td></tr>
             )}
             {(ordem.itens ?? []).map((item) => (
               <tr key={item.id} className="border-t border-gray-50 hover:bg-gray-50">
                 <td className="px-4 py-2.5">
-                  <span className={`text-xs font-mono px-2 py-0.5 rounded ${item.tipo === 'SERVICO' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
+                  <span className={`text-xs font-mono px-2 py-0.5 rounded ${item.tipo === 'SERVICO' ? 'bg-brand-100 text-brand-700' : 'bg-blue-100 text-blue-700'}`}>
                     {item.tipo}
                   </span>
                 </td>
@@ -209,13 +209,17 @@ export default function OrdemDetalhePage() {
 function StatusModal({ ordem, onClose, onSaved }) {
   const nexts = ORDER_STATUS_TRANSITIONS[ordem.status] ?? []
   const [status, setStatus] = useState(nexts[0] ?? '')
+  const [dataValidade, setDataValidade] = useState('')
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
 
   const handleSave = async () => {
+    if (status === 'AGUARDANDO_APROVACAO' && !dataValidade) {
+      setError({ message: 'Data de validade obrigatória para este status.' }); return
+    }
     setLoading(true); setError(null)
     try {
-      await ordemService.avancarStatus(ordem.id, status)
+      await ordemService.avancarStatus(ordem.id, status, dataValidade || undefined)
       onSaved(); onClose()
     } catch (err) { setError(err) }
     finally { setLoading(false) }
@@ -229,10 +233,17 @@ function StatusModal({ ordem, onClose, onSaved }) {
         <div className="flex flex-col gap-1">
           <label className="text-xs text-gray-500 font-mono">Próximo status</label>
           <select value={status} onChange={(e) => setStatus(e.target.value)}
-            className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-700">
+            className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700">
             {nexts.map((s) => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
           </select>
         </div>
+        {status === 'AGUARDANDO_APROVACAO' && (
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-gray-500 font-mono">Data de validade do orçamento *</label>
+            <input type="date" value={dataValidade} onChange={(e) => setDataValidade(e.target.value)}
+              className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700" />
+          </div>
+        )}
         <div className="flex gap-2 justify-end">
           <Button onClick={onClose}>Cancelar</Button>
           <Button variant="primary" loading={loading} onClick={handleSave}>Confirmar</Button>
@@ -251,7 +262,7 @@ function PagamentoModal({ ordem, onClose, onSaved }) {
   const handleSave = async () => {
     setLoading(true); setError(null)
     try {
-      await pagamentoService.registrar({ orderId: ordem.id, valor, formaPagamento: forma })
+      await pagamentoService.registrar({ ordemId: ordem.id, valor, forma })
       onSaved()
     } catch (err) { setError(err) }
     finally { setLoading(false) }
@@ -265,12 +276,12 @@ function PagamentoModal({ ordem, onClose, onSaved }) {
           <div className="flex flex-col gap-1">
             <label className="text-xs text-gray-500 font-mono">Valor (R$)</label>
             <input type="number" step="0.01" value={valor} onChange={(e) => setValor(parseFloat(e.target.value))}
-              className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-700" />
+              className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700" />
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-xs text-gray-500 font-mono">Forma de pagamento</label>
             <select value={forma} onChange={(e) => setForma(e.target.value)}
-              className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-700">
+              className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700">
               {FORMAS_PAGAMENTO.map((f) => <option key={f}>{f}</option>)}
             </select>
           </div>

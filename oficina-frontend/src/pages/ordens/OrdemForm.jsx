@@ -52,7 +52,7 @@ export default function OrdemForm({ onClose, onSaved }) {
         </div>
 
         {cliente && (
-          <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-2.5 text-sm text-green-800">
+          <div className="bg-brand-50 border border-brand-100 rounded-lg px-4 py-2.5 text-sm text-brand-800">
             ✓ {cliente.nome}
           </div>
         )}
@@ -63,7 +63,7 @@ export default function OrdemForm({ onClose, onSaved }) {
             <select
               value={carroId}
               onChange={(e) => setCarroId(e.target.value)}
-              className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-700"
+              className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
             >
               <option value="">Sem veículo</option>
               {carros.map((c) => (

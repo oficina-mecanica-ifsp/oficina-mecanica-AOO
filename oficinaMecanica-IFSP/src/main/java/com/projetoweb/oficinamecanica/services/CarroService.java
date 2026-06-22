@@ -29,6 +29,10 @@ public class CarroService {
         return carroRepository.findAll(pageable).map(CarroResponseDto::from);
     }
 
+    public Page<CarroResponseDto> findByClienteId(Long clienteId, Pageable pageable) {
+        return carroRepository.findByClienteId(clienteId, pageable).map(CarroResponseDto::from);
+    }
+
     public CarroResponseDto findById(Long id) {
         Carro entity = carroRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Carro não encontrado com id: " + id));

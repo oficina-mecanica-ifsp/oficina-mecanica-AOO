@@ -10,6 +10,7 @@ import com.projetoweb.oficinamecanica.dto.UsuarioResponseDto;
 import com.projetoweb.oficinamecanica.entities.enums.OrderStatus;
 import com.projetoweb.oficinamecanica.entities.enums.TipoUsuario;
 import com.projetoweb.oficinamecanica.repositories.ClienteRepository;
+import com.projetoweb.oficinamecanica.repositories.CarroRepository;
 import com.projetoweb.oficinamecanica.repositories.OrderRepository;
 import com.projetoweb.oficinamecanica.repositories.UsuarioRepository;
 import com.projetoweb.oficinamecanica.services.EmailService;
@@ -49,12 +50,16 @@ class OrderControllerIT {
     private ClienteRepository clienteRepository;
 
     @Autowired
+    private CarroRepository carroRepository;
+
+    @Autowired
     private OrderRepository orderRepository;
 
     private String adminToken;
     private String atendenteToken;
     private String mecanicoToken;
     private Long clienteId;
+    private Long carroId;
 
     private final List<Long> createdOrderIds = new ArrayList<>();
     private final List<Long> createdUserIds = new ArrayList<>();
@@ -72,6 +77,11 @@ class OrderControllerIT {
         mecanicoToken = loginAndGetToken("mecanico@order.com", "senha123");
 
         clienteId = clienteRepository.findAll().get(0).getId();
+        carroId = carroRepository.findAll().stream()
+                .filter(c -> c.getCliente().getId().equals(clienteId))
+                .findFirst()
+                .orElseGet(() -> carroRepository.findAll().get(0))
+                .getId();
     }
 
     @AfterEach
@@ -101,7 +111,7 @@ class OrderControllerIT {
     @Test
     @DisplayName("POST /orders — 401 sem token")
     void createOrder_semToken_deveRetornar401() {
-        HttpEntity<OrderRequestDto> request = new HttpEntity<>(new OrderRequestDto(clienteId, null));
+        HttpEntity<OrderRequestDto> request = new HttpEntity<>(new OrderRequestDto(clienteId, carroId));
         ResponseEntity<String> response = restTemplate.postForEntity("/orders", request, String.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
@@ -114,7 +124,7 @@ class OrderControllerIT {
     @DisplayName("POST /orders com MECANICO — 403")
     void createOrder_comRoleMecanico_deveRetornar403() {
         HttpEntity<OrderRequestDto> request = new HttpEntity<>(
-                new OrderRequestDto(clienteId, null), authHeaders(mecanicoToken));
+                new OrderRequestDto(clienteId, carroId), authHeaders(mecanicoToken));
 
         ResponseEntity<String> response = restTemplate.postForEntity("/orders", request, String.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
@@ -152,7 +162,7 @@ class OrderControllerIT {
     @DisplayName("POST /orders com ATENDENTE — 201 e status RECEBIDO")
     void createOrder_comRoleAtendente_deveRetornar201() {
         HttpEntity<OrderRequestDto> request = new HttpEntity<>(
-                new OrderRequestDto(clienteId, null), authHeaders(atendenteToken));
+                new OrderRequestDto(clienteId, carroId), authHeaders(atendenteToken));
 
         ResponseEntity<OrderResponseDto> response =
                 restTemplate.postForEntity("/orders", request, OrderResponseDto.class);
@@ -219,7 +229,7 @@ class OrderControllerIT {
 
     private Long criarOrder(String token) {
         HttpEntity<OrderRequestDto> request = new HttpEntity<>(
-                new OrderRequestDto(clienteId, null), authHeaders(token));
+                new OrderRequestDto(clienteId, carroId), authHeaders(token));
         ResponseEntity<OrderResponseDto> response =
                 restTemplate.postForEntity("/orders", request, OrderResponseDto.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);

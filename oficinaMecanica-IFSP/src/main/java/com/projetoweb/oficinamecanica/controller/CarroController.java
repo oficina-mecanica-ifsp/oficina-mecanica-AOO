@@ -25,7 +25,11 @@ public class CarroController {
 
     @GetMapping
     public ResponseEntity<Page<CarroResponseDto>> findAll(
-            @PageableDefault(size = 10, sort = "id") Pageable pageable) {
+            @PageableDefault(size = 10, sort = "id") Pageable pageable,
+            @RequestParam(required = false) Long clienteId) {
+        if (clienteId != null) {
+            return ResponseEntity.ok(carroService.findByClienteId(clienteId, pageable));
+        }
         return ResponseEntity.ok(carroService.findAll(pageable));
     }
 

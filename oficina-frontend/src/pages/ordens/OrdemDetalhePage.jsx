@@ -17,6 +17,7 @@ export default function OrdemDetalhePage() {
   const { id } = useParams()
   const { can } = useAuth()
   const [ordem, setOrdem] = useState(null)
+  const [pagamento, setPagamento] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [statusModal, setStatusModal] = useState(false)
@@ -25,7 +26,16 @@ export default function OrdemDetalhePage() {
 
   const load = useCallback(async () => {
     setLoading(true); setError(null)
-    try { const { data } = await ordemService.buscarPorId(id); setOrdem(data) }
+    try {
+      const { data } = await ordemService.buscarPorId(id)
+      setOrdem(data)
+      try {
+        const { data: pag } = await pagamentoService.buscarPorOrdem(id)
+        setPagamento(pag)
+      } catch {
+        setPagamento(null)
+      }
+    }
     catch (err) { setError(err) }
     finally { setLoading(false) }
   }, [id])
@@ -66,7 +76,7 @@ export default function OrdemDetalhePage() {
             <h1 className="text-lg font-medium">OS #{String(ordem.id).padStart(4, '0')}</h1>
             <Badge status={ordem.status} />
           </div>
-          <p className="text-xs text-gray-400 mt-1">Aberta em {formatDate(ordem.data)}</p>
+          <p className="text-xs text-gray-400 mt-1">Aberta em {formatDate(ordem.createdAt)}</p>
         </div>
         <div className="flex-1" />
         {canStatus && nexts.length > 0 && (
@@ -95,10 +105,10 @@ export default function OrdemDetalhePage() {
         <div className="bg-white border border-gray-100 rounded-xl p-4">
           <p className="text-[10px] font-mono text-gray-400 uppercase tracking-wider mb-3">Cliente</p>
           {[
-            ['Nome', ordem.clienteNome],
-            ['Documento', ordem.clienteDoc ? formatCPFCNPJ(ordem.clienteDoc) : '—'],
-            ['Email', ordem.clienteEmail],
-            ['Tel.', ordem.clienteTelefone],
+            ['Nome', ordem.cliente?.nome],
+            ['Documento', ordem.cliente?.doc ? formatCPFCNPJ(ordem.cliente.doc) : '—'],
+            ['Email', ordem.cliente?.email],
+            ['Tel.', ordem.cliente?.telefone],
           ].map(([k, v]) => (
             <div key={k} className="flex gap-2 text-sm mb-1.5">
               <span className="text-gray-400 w-20 flex-shrink-0">{k}</span>
@@ -108,12 +118,12 @@ export default function OrdemDetalhePage() {
         </div>
         <div className="bg-white border border-gray-100 rounded-xl p-4">
           <p className="text-[10px] font-mono text-gray-400 uppercase tracking-wider mb-3">Veículo</p>
-          {ordem.carroPlaca ? (
+          {ordem.carro ? (
             [
-              ['Placa', ordem.carroPlaca],
-              ['Modelo', `${ordem.carroModelo} ${ordem.carroMarca}`],
-              ['Ano', ordem.carroAno],
-              ['Cor', ordem.carroCor],
+              ['Placa', ordem.carro.placa],
+              ['Modelo', `${ordem.carro.modelo} ${ordem.carro.marca}`],
+              ['Ano', ordem.carro.anoFabricacao],
+              ['Cor', ordem.carro.cor],
             ].map(([k, v]) => (
               <div key={k} className="flex gap-2 text-sm mb-1.5">
                 <span className="text-gray-400 w-20 flex-shrink-0">{k}</span>
@@ -148,7 +158,7 @@ export default function OrdemDetalhePage() {
           </thead>
           <tbody>
             {(ordem.itens ?? []).length === 0 && (
-              <tr><td colSpan={6} className="px-4 py-6 text-center text-gray-400 text-sm">Nenhum item adicionado.</td></tr>
+              <tr key="empty"><td colSpan={6} className="px-4 py-6 text-center text-gray-400 text-sm">Nenhum item adicionado.</td></tr>
             )}
             {(ordem.itens ?? []).map((item) => (
               <tr key={item.id} className="border-t border-gray-50 hover:bg-gray-50">
@@ -182,9 +192,9 @@ export default function OrdemDetalhePage() {
       {/* Pagamento */}
       <div className="bg-white border border-gray-100 rounded-xl p-4">
         <p className="font-medium text-sm mb-3">Pagamento</p>
-        {ordem.pagamento ? (
+        {pagamento ? (
           <Alert type="success">
-            ✓ Pago: {formatBRL(ordem.pagamento.valor)} via {ordem.pagamento.forma} em {formatDate(ordem.pagamento.data)}
+            ✓ Pago: {formatBRL(pagamento.valor)} via {pagamento.formaPagamento} em {formatDate(pagamento.dataPagamento)}
           </Alert>
         ) : canEdit ? (
           <Button onClick={() => setPagModal(true)}>Registrar pagamento</Button>
@@ -209,17 +219,13 @@ export default function OrdemDetalhePage() {
 function StatusModal({ ordem, onClose, onSaved }) {
   const nexts = ORDER_STATUS_TRANSITIONS[ordem.status] ?? []
   const [status, setStatus] = useState(nexts[0] ?? '')
-  const [dataValidade, setDataValidade] = useState('')
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
 
   const handleSave = async () => {
-    if (status === 'AGUARDANDO_APROVACAO' && !dataValidade) {
-      setError({ message: 'Data de validade obrigatória para este status.' }); return
-    }
     setLoading(true); setError(null)
     try {
-      await ordemService.avancarStatus(ordem.id, status, dataValidade || undefined)
+      await ordemService.avancarStatus(ordem.id, status)
       onSaved(); onClose()
     } catch (err) { setError(err) }
     finally { setLoading(false) }
@@ -237,13 +243,6 @@ function StatusModal({ ordem, onClose, onSaved }) {
             {nexts.map((s) => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
           </select>
         </div>
-        {status === 'AGUARDANDO_APROVACAO' && (
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-500 font-mono">Data de validade do orçamento *</label>
-            <input type="date" value={dataValidade} onChange={(e) => setDataValidade(e.target.value)}
-              className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700" />
-          </div>
-        )}
         <div className="flex gap-2 justify-end">
           <Button onClick={onClose}>Cancelar</Button>
           <Button variant="primary" loading={loading} onClick={handleSave}>Confirmar</Button>
@@ -262,7 +261,7 @@ function PagamentoModal({ ordem, onClose, onSaved }) {
   const handleSave = async () => {
     setLoading(true); setError(null)
     try {
-      await pagamentoService.registrar({ ordemId: ordem.id, valor, forma })
+      await pagamentoService.registrar({ orderId: ordem.id, valor, formaPagamento: forma })
       onSaved()
     } catch (err) { setError(err) }
     finally { setLoading(false) }

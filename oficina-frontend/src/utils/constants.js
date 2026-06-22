@@ -1,40 +1,29 @@
 export const ORDER_STATUS_TRANSITIONS = {
-  RECEBIDO: ['EM_DIAGNOSTICO', 'EM_ATRASO'],
-  EM_DIAGNOSTICO: ['AGUARDANDO_APROVACAO', 'EM_ATRASO'],
-  AGUARDANDO_APROVACAO: ['EM_EXECUCAO', 'EM_ATRASO'],
-  EM_EXECUCAO: ['FINALIZADO', 'EM_ATRASO'],
-  FINALIZADO: ['ENTREGUE'],
-  ENTREGUE: [],
-  EM_ATRASO: ['EM_EXECUCAO'],
+  ABERTO: ['EM_ANDAMENTO', 'EM_ATRASO'],
+  EM_ANDAMENTO: ['FINALIZADO', 'EM_ATRASO'],
+  EM_ATRASO: ['EM_ANDAMENTO'],
+  FINALIZADO: [],
 }
 
 export const STATUS_LABELS = {
-  RECEBIDO: 'Recebido',
-  EM_DIAGNOSTICO: 'Em Diagnóstico',
-  AGUARDANDO_APROVACAO: 'Ag. Aprovação',
-  EM_EXECUCAO: 'Em Execução',
-  FINALIZADO: 'Finalizado',
-  ENTREGUE: 'Entregue',
+  ABERTO: 'Aberto',
+  EM_ANDAMENTO: 'Em Andamento',
   EM_ATRASO: 'Em Atraso',
+  FINALIZADO: 'Finalizado',
 }
 
 export const STATUS_COLORS = {
-  RECEBIDO: 'bg-blue-100 text-blue-700',
-  EM_DIAGNOSTICO: 'bg-yellow-100 text-yellow-700',
-  AGUARDANDO_APROVACAO: 'bg-purple-100 text-purple-700',
-  EM_EXECUCAO: 'bg-green-100 text-green-700',
-  FINALIZADO: 'bg-emerald-100 text-emerald-700',
-  ENTREGUE: 'bg-gray-100 text-gray-600',
+  ABERTO: 'bg-blue-100 text-blue-700',
+  EM_ANDAMENTO: 'bg-yellow-100 text-yellow-700',
   EM_ATRASO: 'bg-red-100 text-red-700',
+  FINALIZADO: 'bg-emerald-100 text-emerald-700',
 }
 
 export const STATUS_ORDER = [
-  'RECEBIDO',
-  'EM_DIAGNOSTICO',
-  'AGUARDANDO_APROVACAO',
-  'EM_EXECUCAO',
+  'ABERTO',
+  'EM_ANDAMENTO',
+  'EM_ATRASO',
   'FINALIZADO',
-  'ENTREGUE',
 ]
 
 export const FORMAS_PAGAMENTO = [

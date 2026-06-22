@@ -26,10 +26,10 @@ export default function OrdemForm({ onClose, onSaved }) {
   }
 
   const handleSubmit = async () => {
-    if (!cliente) return
+    if (!cliente || !carroId) return
     setLoading(true); setApiError(null)
     try {
-      await ordemService.criar({ clienteId: cliente.id, carroId: carroId || null })
+      await ordemService.criar({ clienteId: cliente.id, carroId })
       onSaved()
     } catch (err) { setApiError(err) }
     finally { setLoading(false) }
@@ -57,15 +57,21 @@ export default function OrdemForm({ onClose, onSaved }) {
           </div>
         )}
 
+        {cliente && carros.length === 0 && (
+          <div className="bg-red-50 border border-red-100 rounded-lg px-4 py-2.5 text-sm text-red-700">
+            Este cliente não possui veículo cadastrado. Cadastre um veículo antes de abrir a OS.
+          </div>
+        )}
+
         {carros.length > 0 && (
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-500 font-mono">Veículo (opcional)</label>
+            <label className="text-xs text-gray-500 font-mono">Veículo *</label>
             <select
               value={carroId}
               onChange={(e) => setCarroId(e.target.value)}
               className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
             >
-              <option value="">Sem veículo</option>
+              <option value="">Selecione um veículo</option>
               {carros.map((c) => (
                 <option key={c.id} value={c.id}>{c.placa} — {c.modelo} {c.marca}</option>
               ))}
@@ -75,7 +81,7 @@ export default function OrdemForm({ onClose, onSaved }) {
 
         <div className="flex gap-2 justify-end mt-2">
           <Button type="button" onClick={onClose}>Cancelar</Button>
-          <Button variant="primary" disabled={!cliente} loading={loading} onClick={handleSubmit}>
+          <Button variant="primary" disabled={!cliente || !carroId} loading={loading} onClick={handleSubmit}>
             Abrir OS
           </Button>
         </div>

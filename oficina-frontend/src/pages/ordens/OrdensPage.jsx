@@ -76,10 +76,10 @@ export default function OrdensPage() {
             <tr key={o.id} className="hover:bg-gray-50">
               <Td className="font-mono text-gray-400">#{String(o.id).padStart(4, '0')}</Td>
               <Td><Badge status={o.status} /></Td>
-              <Td>{o.clienteNome ?? '—'}</Td>
-              <Td className="font-mono text-xs">{o.carroPlaca ?? 'Não vinculado'}</Td>
+              <Td>{o.cliente?.nome ?? '—'}</Td>
+              <Td className="font-mono text-xs">{o.carro?.placa ?? 'Não vinculado'}</Td>
               <Td className="font-mono">{formatBRL(o.total)}</Td>
-              <Td className="text-xs text-gray-400">{formatDate(o.data)}</Td>
+              <Td className="text-xs text-gray-400">{formatDate(o.createdAt)}</Td>
               <Td>
                 <Link to={`/ordens/${o.id}`}>
                   <Button size="xs">Ver</Button>

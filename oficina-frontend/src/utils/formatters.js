@@ -17,6 +17,7 @@ export const formatCPFCNPJ = (value = '') => {
 }
 
 export const parseDuration = (iso = '') => {
+  if (!iso) return '—'
   const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?/)
   if (!m) return iso
   const h = m[1] ? `${m[1]}h` : ''
